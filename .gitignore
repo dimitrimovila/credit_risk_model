@@ -4,6 +4,11 @@ data/
 *.rar
 *.zip
 
+# Ignore all images apart from the plots folder
+*.png
+*.jpg
+!plots/*.png
+
 # Ignore virtual environment
 venv/
 env/
@@ -11,3 +16,6 @@ env/
 # Ignore Python cache and Jupyter checkpoints
 __pycache__/
 .ipynb_checkpoints/
+
+# Ignore heavy datasets
+*.duckdb
