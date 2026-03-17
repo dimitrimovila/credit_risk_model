@@ -4,10 +4,12 @@ data/
 *.rar
 *.zip
 
-# Ignore all images apart from the plots folder
+# Ignore all images except plots folder
 *.png
 *.jpg
-!plots/*.png
+!plots/
+!plots/eda/*.png
+!plots/outputs/*.png
 
 # Ignore virtual environment
 venv/
