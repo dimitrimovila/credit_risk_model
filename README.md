@@ -48,22 +48,19 @@ implemented entirely in DuckDB SQL to handle the full data volume
 
 **Key engineering decisions:**
 - `DAYS_EMPLOYED = 365243` (sentinel for "not employed") → `NULL` + `IS_NOT_EMPLOYED` flag
-- All `AMT_*` columns capped at p99.9% computed on train only — no leakage to test
-- Recency windows (6M, 12M) computed for all secondary tables — recent behaviour
-  outweighs distant history
-- Cross-table features combine signals across tables (e.g. `EXT_SCORE_ADJ_REFUSAL`
-  adjusts external credit score based on HC's own refusal history)
-- `OCCUPATION_TYPE` and `ORGANIZATION_TYPE` left as raw strings — target encoded
-  inside the k-fold loop at modelling time to prevent leakage
-- All materialised as DuckDB tables on disk — survives kernel restarts
+- All `AMT_*` columns capped at p99.9% computed on train only in order to avoid leakage to test
+- Recency windows (6M, 12M) computed for all secondary tables: recent behaviour outweighs distant history
+- Cross-table features combine signals across tables (e.g. `EXT_SCORE_ADJ_REFUSAL` adjusts external credit score based on HC's own refusal history)
+- `OCCUPATION_TYPE` and `ORGANIZATION_TYPE` left as raw strings: target encoded inside the k-fold loop at modelling time to prevent leakage
+- All materialised as DuckDB tables on disk, survives kernel restarts
 
-**Result:** 247 features from 122 original columns across 7 tables.
+**Result:** 245 features from 122 original columns across 7 tables.
 
 ---
 
 ### 03 — Modelling (`03_modelling.ipynb`)
 
-Full modelling pipeline from feature-engineered tables to submission file.
+Full modelling pipeline
 
 **Pipeline:**
 
@@ -77,27 +74,11 @@ Full modelling pipeline from feature-engineered tables to submission file.
 **Key implementation details:**
 - Stratified 5-fold cross-validation throughout — preserves 8.07% positive rate
 - `scale_pos_weight = 11.4` handles class imbalance natively in all three base models
-- Smoothed target encoding (`smooth=20`) fitted on train folds only — never on
-  full dataset — prevents target leakage on `OCCUPATION_TYPE` and `ORGANIZATION_TYPE`
+- Smoothed target encoding (`smooth=20`) fitted on train folds only, never on full dataset, which prevents target leakage on `OCCUPATION_TYPE` and `ORGANIZATION_TYPE`
 - Optuna search runs on a stratified 20% sample for speed, final evaluation on full data
-- Meta-learner (Logistic Regression) trained on OOF predictions only — no leakage
-  between stacking stages
-- SHAP analysis provides both global interpretation (summary plot) and local
-  explanation (waterfall plots for true positive and false negative cases)
-
-**Meta-learner weights:**
-
-| Model | Weight |
-|---|---|
-| LightGBM | 0.587 |
-| CatBoost | 0.340 |
-| XGBoost | 0.184 |
+- SHAP analysis provides both global interpretation (summary plot) and local explanation (waterfall plots for true positive and false negative cases)
 
 **SHAP findings:**
-- Top 2 features are engineered cross-table features (`EXT_SCORE_VS_INTERNAL_DPD`,
-  `EXT_SCORE_ADJ_REFUSAL`) — not raw data columns
-- `CREDIT_TERM` shows a non-linear U-shape relationship with default risk —
-  both very short and very long loan terms increase risk
-- False negatives have a clear structure: clients who look reliable on paper
-  (good external score, stable employment) but default due to unforeseen events —
-  irreducible error that no historical feature can anticipate
+- Top 2 features are engineered cross-table features (`EXT_SCORE_VS_INTERNAL_DPD`, `EXT_SCORE_ADJ_REFUSAL`) 
+- `CREDIT_TERM` shows a non-linear U-shape relationship with default risk: both very short and very long loan terms increase risk
+- False negatives have a clear structure: clients who look reliable on paper (good external score, stable employment) but default due to unforeseen events, an irreducible error that no historical feature can anticipate
