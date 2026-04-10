@@ -1,6 +1,6 @@
 ## Home Credit Default Risk 
 
-### 01 — Exploratory Data Analysis (`01_eda_and_sql.ipynb`)
+### 01 - Exploratory Data Analysis (`01_eda_and_sql.ipynb`)
 
 Exploratory analysis of all seven source tables using DuckDB SQL and Python
 visualisations. Surfaces the patterns that drive the feature engineering phase.
@@ -28,7 +28,7 @@ visualisations. Surfaces the patterns that drive the feature engineering phase.
 
 ---
 
-### 02 — Feature Engineering (`02_feature_engineering.ipynb`)
+### 02 - Feature Engineering (`02_feature_engineering.ipynb`)
 
 End-to-end feature engineering pipeline across all 7 dataset tables,
 implemented entirely in DuckDB SQL to handle the full data volume
@@ -58,7 +58,7 @@ implemented entirely in DuckDB SQL to handle the full data volume
 
 ---
 
-### 03 — Modelling (`03_modelling.ipynb`)
+### 03 - Modelling (`03_modelling.ipynb`)
 
 Full modelling pipeline
 
@@ -67,9 +67,8 @@ Full modelling pipeline
 | Step | Description | OOF AUC |
 |---|---|---|
 | Baseline | LightGBM default params, 5-fold CV | 0.78680 |
-| Feature selection | Drop 21 zero-importance features | 0.78692 |
+| Feature selection | Drop 23 zero-importance features | 0.78692 |
 | Hyperparameter tuning | Optuna Bayesian optimisation, 50 trials | 0.79061 |
-| Stacking | LightGBM + XGBoost + CatBoost + LR meta-learner | **0.79165** |
 
 **Key implementation details:**
 - Stratified 5-fold cross-validation throughout — preserves 8.07% positive rate
